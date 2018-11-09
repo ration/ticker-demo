@@ -1,0 +1,99 @@
+buildscript {
+	ext {
+		kotlinVersion = '1.2.70'
+		springBootVersion = '2.1.0.RELEASE'
+        cmd_ext = System.getProperty("os.name").toUpperCase().contains("WINDOWS") ? ".cmd" : ""
+
+    }
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
+		classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
+	}
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'kotlin-spring'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+group = 'ticker-demo'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+compileKotlin {
+	kotlinOptions {
+		freeCompilerArgs = ["-Xjsr305=strict"]
+		jvmTarget = "1.8"
+	}
+}
+compileTestKotlin {
+	kotlinOptions {
+		freeCompilerArgs = ["-Xjsr305=strict"]
+		jvmTarget = "1.8"
+	}
+}
+
+processResources {
+    dependsOn "buildAngular"
+}
+
+
+repositories {
+	maven { url 'https://oss.jfrog.org/libs-snapshot' }
+
+	mavenCentral()
+}
+
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter-web')
+	implementation('org.springframework.boot:spring-boot-starter')
+	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	implementation "io.reactivex.rxjava2:rxjava:2.2.3"
+	compile 'io.rsocket.kotlin:rsocket-core:0.9-SNAPSHOT'
+	compile 'io.rsocket.kotlin:rsocket-transport-netty:0.9-SNAPSHOT'
+	compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.7'
+
+
+}
+
+def webappDir = "$projectDir/src/main/webapp"
+sourceSets {
+    main {
+        resources {
+            srcDirs = ["$webappDir/dist", "$projectDir/src/main/resources"]
+        }
+    }
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            compileClasspath += test.output
+            compileClasspath += test.compileClasspath
+            runtimeClasspath += main.output + test.output
+
+            //noinspection GroovyAssignabilityCheck
+            srcDir file('src/integrationTest/kotlin')
+        }
+    }
+}
+
+task buildAngular(type: Exec) {
+    dependsOn "installAngular"
+    workingDir "$webappDir"
+    inputs.dir "$webappDir"
+    group = BasePlugin.BUILD_GROUP
+    commandLine "ng${cmd_ext}", "build", "--prod"
+}
+
+task installAngular(type: Exec) {
+    workingDir "$webappDir"
+    inputs.dir "$webappDir"
+    group = BasePlugin.BUILD_GROUP
+    commandLine "npm${cmd_ext}", "install"
+}
