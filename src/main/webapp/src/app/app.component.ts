@@ -17,7 +17,7 @@ export class AppComponent {
   }
 
   public block() {
-    const sec = 1000;
+    const sec = 10000;
     console.log('Blocking js for ' + (sec / 1000) + ' seconds');
     const end = Date.now() + sec;
     while (Date.now() < end) {
