@@ -13,9 +13,9 @@ class NewsGenerator : NewsProvider {
     private val source = PublishSubject.create<News>()
 
     init {
-        val ticker = Observable.interval(1, TimeUnit.SECONDS)
+        val ticker = Observable.interval(1, TimeUnit.MILLISECONDS)
         ticker.subscribe{
-            source.onNext(News(it, System.currentTimeMillis(), "Item $it", "Longer description of $it"))
+            source.onNext(News(it, 1, System.currentTimeMillis(), "Item $it"))
         }
     }
 

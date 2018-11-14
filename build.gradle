@@ -38,7 +38,7 @@ compileTestKotlin {
 }
 
 processResources {
-    dependsOn "buildAngular"
+    dependsOn "buildAngularDebug"
 }
 
 
@@ -89,6 +89,13 @@ task buildAngular(type: Exec) {
     inputs.dir "$webappDir"
     group = BasePlugin.BUILD_GROUP
     commandLine "ng${cmd_ext}", "build", "--prod"
+}
+
+task buildAngularDebug(type: Exec) {
+    workingDir "$webappDir"
+    inputs.dir "$webappDir"
+    group = BasePlugin.BUILD_GROUP
+    commandLine "ng${cmd_ext}", "build"
 }
 
 task installAngular(type: Exec) {

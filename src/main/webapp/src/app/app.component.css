@@ -1,0 +1,10 @@
+.news-item {
+  border: 1px solid brown;
+  padding: 2px;
+}
+
+.news-list {
+  display: flex;
+  align-items: center;
+
+}
