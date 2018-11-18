@@ -18,8 +18,6 @@ class NewsController(@Autowired private val newsProvider: NewsProvider) {
     private val port = 9988
     private val mapper = ObjectMapper()
 
-
-
     private val closeable: Single<NettyContextCloseable> = RSocketFactory
             .receive()
             .acceptor { { setup, rSocket -> handler(setup, rSocket) } } // server handler RSocket

@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import RSocketWebSocketClient from 'rsocket-websocket-client';
 import {JsonSerializers, RSocketClient, MAX_STREAM_ID} from 'rsocket-core';
 import {News} from './news.model';
-import {Observable, Subject} from 'rxjs';
+import {Observable, Subject, Subscription} from 'rxjs';
 
 
 @Injectable({
@@ -14,6 +14,10 @@ export class TickerService {
   private port = 9988;
   private subject = new Subject<News>();
   private previous: News = null;
+  private subscription = null;
+  readonly SINGLE_REQ = 32;
+
+  private counter = this.SINGLE_REQ;
 
   constructor() {
   }
@@ -54,16 +58,13 @@ export class TickerService {
             console.log('onError(%s)', error.message);
           },
           onNext(payload) {
-            self.subject.next(payload.data);
-            if (self.previous != null && (self.previous.id + 1) !== payload.data.id) {
-              console.log('Missed ' + payload.data.id + " previous " + self.previous.id);
-            }
-
-            self.previous = payload.data;
+            self.handlePayload(payload);
+            self.requestMoreDataIfNeeded();
           },
           onSubscribe(_subscription) {
+            self.subscription = _subscription;
             console.log('on subscribe');
-            _subscription.request(MAX_STREAM_ID);
+            _subscription.request(32);
           }
         });
       },
@@ -76,4 +77,19 @@ export class TickerService {
 
   }
 
+  private handlePayload(payload) {
+    this.subject.next(payload.data);
+    if (this.previous != null && (this.previous.id + 1) !== payload.data.id) {
+      console.log('Missed ' + payload.data.id + ' previous ' + this.previous.id);
+    }
+    this.previous = payload.data;
+  }
+
+  private requestMoreDataIfNeeded() {
+    this.counter--;
+    if (this.subscription != null && this.counter <= 0) {
+      this.subscription.request(this.SINGLE_REQ);
+      this.counter = this.SINGLE_REQ;
+    }
+  }
 }
