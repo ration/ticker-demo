@@ -10,39 +10,25 @@ import {Subscription} from 'rxjs';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  public subscription: Subscription = null;
-  newsList: Array<News> = [];
+  expanded = false;
+  private subscription: Subscription = null;
+  news: News = {id: 0, text: 'this is some shorter text', description: 'short', priority: 1};
+  stop_button = "stop";
 
   constructor(private tickerService: TickerService) {
   }
 
-  public block() {
-    const sec = 10000;
-    console.log('Blocking js for ' + (sec / 1000) + ' seconds');
-    const end = Date.now() + sec;
-    while (Date.now() < end) {
-      const doSomethingHeavyInJavaScript = 1 + 2 + 3;
-    }
-    console.log('Blocking done');
-
-  }
 
   public stop() {
-    if (!this.subscription.closed) {
-      this.subscription.unsubscribe();
-    } else {
-      this.subscribe();
-    }
+    this.tickerService.pause();
+    this.expanded = !this.expanded;
   }
 
 
   public subscribe() {
     this.subscription = this.tickerService.ticker().subscribe(data => {
-      this.newsList.push(data);
-      if (this.newsList.length > 3) {
-        this.newsList.shift();
-      }
- });
+      this.news = data;
+    });
   }
 
   public connect() {
@@ -51,7 +37,6 @@ export class AppComponent {
       this.subscribe();
     }
   }
-
 
 
 }

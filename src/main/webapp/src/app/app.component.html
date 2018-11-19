@@ -1,12 +1,19 @@
 <!--The content below is only a placeholder and can be replaced.-->
 <div style="text-align:center">
-  <button [disabled]="subscription" (click)="connect()" >Connect</button>
-  <button (click)="block()" >block</button>
-  <button (click)="stop()" >stop</button>
+  <button [disabled]="subscription" (click)="connect()">Connect</button>
+  <button (click)="stop()">{{stop_button}}</button>
 
-  <div id="ticker" class="news-list">
-    <div *ngFor="let item of newsList" class="news-item">
-      {{item.description}}
+  <div id="ticker" class="news-item" (click)="stop()">
+    <div class="news-description" >
+      {{news.priority}}
+    </div>
+      <div class="news-description" >
+        {{news.description}}
+      </div>
+      <div class="news-long">
+        <div *ngIf="expanded">
+          {{news.text}}
+        </div>
     </div>
   </div>
 </div>

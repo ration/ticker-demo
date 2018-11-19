@@ -15,9 +15,10 @@ export class TickerService {
   private subject = new Subject<News>();
   private previous: News = null;
   private subscription = null;
-  readonly SINGLE_REQ = 32;
+  readonly SINGLE_REQ = 1;
 
   private counter = this.SINGLE_REQ;
+  private paused = false;
 
   constructor() {
   }
@@ -64,7 +65,7 @@ export class TickerService {
           onSubscribe(_subscription) {
             self.subscription = _subscription;
             console.log('on subscribe');
-            _subscription.request(32);
+            _subscription.request(self.SINGLE_REQ);
           }
         });
       },
@@ -77,6 +78,12 @@ export class TickerService {
 
   }
 
+  public pause() {
+    this.paused = !this.paused;
+    this.requestMoreDataIfNeeded();
+  }
+
+
   private handlePayload(payload) {
     this.subject.next(payload.data);
     if (this.previous != null && (this.previous.id + 1) !== payload.data.id) {
@@ -86,10 +93,12 @@ export class TickerService {
   }
 
   private requestMoreDataIfNeeded() {
-    this.counter--;
-    if (this.subscription != null && this.counter <= 0) {
-      this.subscription.request(this.SINGLE_REQ);
-      this.counter = this.SINGLE_REQ;
+    if (!this.paused) {
+      this.counter--;
+      if (this.subscription != null && this.counter <= 0) {
+        this.subscription.request(this.SINGLE_REQ);
+        this.counter = this.SINGLE_REQ;
+      }
     }
   }
 }
