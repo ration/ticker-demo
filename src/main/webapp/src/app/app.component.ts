@@ -12,7 +12,7 @@ import {Subscription} from 'rxjs';
 export class AppComponent {
   expanded = false;
   private subscription: Subscription = null;
-  news: News = {id: 0, text: 'this is some shorter text', description: 'short', priority: 1};
+  news: News = {id: 3, text: 'this is some longer text', description: 'News item', priority: 1};
   stop_button = "stop";
 
   constructor(private tickerService: TickerService) {
@@ -38,5 +38,9 @@ export class AppComponent {
     }
   }
 
+
+  public getPriority() {
+    return this.news.priority < 2 ? 'alert-danger' : 'alert-primary';
+  }
 
 }

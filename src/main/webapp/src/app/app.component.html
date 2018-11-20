@@ -1,19 +1,17 @@
-<!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <button [disabled]="subscription" (click)="connect()">Connect</button>
-  <button (click)="stop()">{{stop_button}}</button>
+<div class="container-fluid news">
+  <div class="btn-group mb-2" role="group">
 
-  <div id="ticker" class="news-item" (click)="stop()">
-    <div class="news-description" >
-      {{news.priority}}
+    <button class="btn btn-lg btn-outline-primary" [disabled]="subscription" (click)="connect()">Start</button>
+    <button class="btn btn-lg btn-outline-primary" (click)="stop()">{{stop_button}}</button>
+  </div>
+  <div>
+    <div class="news-description alert" [ngClass]="getPriority()" (click)="stop()">
+      {{news.description}}
     </div>
-      <div class="news-description" >
-        {{news.description}}
-      </div>
-      <div class="news-long">
-        <div *ngIf="expanded">
-          {{news.text}}
-        </div>
+  </div>
+  <div id="ticker" class="news-long alert alert-dark" (click)="stop()">
+    <div *ngIf="expanded" class="container ">
+      {{news.text}}
     </div>
   </div>
 </div>
