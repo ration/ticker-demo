@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {News} from './news.model';
 import {TickerService} from './ticker-service';
 import {Subscription} from 'rxjs';
+import {ChangeContext, Options} from 'ng5-slider';
 
 
 @Component({
@@ -13,6 +14,11 @@ export class AppComponent {
   expanded = false;
   private subscription: Subscription = null;
   news: News = {id: 3, text: 'this is some longer text', description: 'News item', priority: 1};
+  speed = 100;
+  options: Options = {
+    floor: 0,
+    ceil: 200
+  };
   stop_button = "stop";
 
   constructor(private tickerService: TickerService) {
@@ -40,7 +46,10 @@ export class AppComponent {
 
 
   public getPriority() {
-    return this.news.priority < 2 ? 'alert-danger' : 'alert-primary';
+    return this.news.priority < 1 ? 'alert-danger' : 'alert-primary';
   }
 
+  setSpeed() {
+      this.tickerService.setSpeed(this.speed);
+  }
 }

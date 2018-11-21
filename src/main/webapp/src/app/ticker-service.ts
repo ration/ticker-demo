@@ -3,12 +3,14 @@ import RSocketWebSocketClient from 'rsocket-websocket-client';
 import {JsonSerializers, RSocketClient, MAX_STREAM_ID} from 'rsocket-core';
 import {News} from './news.model';
 import {Observable, Subject, Subscription} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class TickerService {
+  private url = "http://localhost:8080";
 
   private host = 'localhost';
   private port = 9988;
@@ -20,7 +22,7 @@ export class TickerService {
   private counter = this.SINGLE_REQ;
   private paused = false;
 
-  constructor() {
+  constructor(private http: HttpClient) {
   }
 
   public ticker(): Observable<News> {
@@ -100,5 +102,9 @@ export class TickerService {
         this.counter = this.SINGLE_REQ;
       }
     }
+  }
+
+  setSpeed(speed: number) {
+    this.http.post(this.url + '/speed/' + speed, null).subscribe(() => console.log('Saved speed'));
   }
 }
