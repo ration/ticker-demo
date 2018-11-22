@@ -28,6 +28,11 @@ export class AppComponent {
   public stop() {
     this.tickerService.pause();
     this.expanded = !this.expanded;
+    if (this.expanded) {
+      this.stop_button = "resume";
+    } else {
+      this.stop_button = "stop";
+    }
   }
 
 
