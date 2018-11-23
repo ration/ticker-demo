@@ -1,6 +1,6 @@
 export interface News {
   id: number;
-  priority: number;
+  breaking: boolean;
   description: string;
   text: string;
 }

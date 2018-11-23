@@ -38,16 +38,16 @@ class NewsGenerator : NewsProvider {
     }
 
     private fun fakeNews(id: Long): News {
-        val priority = generator.nextInt(2)
-        return if (priority == 0) {
-            News(id, priority, System.currentTimeMillis(), "Article $id: Super Important News", "The world is on fire! The World is on Fire!")
+        val breaking = generator.nextInt(10) > 8
+        return if (breaking) {
+            News(id, breaking, System.currentTimeMillis(), "Article $id: Super Important News", "The world is on fire! The World is on Fire!")
         } else {
-            News(id, priority, System.currentTimeMillis(), "Article $id: Fake News", "Some boring news article")
+            News(id, breaking, System.currentTimeMillis(), "Article $id: Fake News", "Some boring news article")
         }
     }
 
     override fun news(): Flowable<News> {
-        return source.toFlowable(BackpressureStrategy.DROP).onBackPressureFilter(Duration.ofSeconds(10)) { it.priority == 0 }
+        return source.toFlowable(BackpressureStrategy.DROP).onBackPressureFilter(Duration.ofSeconds(10)) { !it.breaking }
     }
 
     override fun setSpeed(speed: Long) {

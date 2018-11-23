@@ -13,7 +13,7 @@ import {ChangeContext, Options} from 'ng5-slider';
 export class AppComponent {
   expanded = false;
   private subscription: Subscription = null;
-  news: News = {id: 3, text: 'this is some longer text', description: 'News item', priority: 1};
+  news: News = {id: 3, text: 'this is some longer text', description: 'News item', breaking: false};
   speed = 100;
   options: Options = {
     floor: 0,
@@ -51,7 +51,7 @@ export class AppComponent {
 
 
   public getPriority() {
-    return this.news.priority < 1 ? 'alert-danger' : 'alert-primary';
+    return this.news.breaking ? 'alert-danger' : 'alert-primary';
   }
 
   setSpeed() {
