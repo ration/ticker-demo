@@ -23,7 +23,7 @@ fun <T> Flowable<T>.onBackPressureFilter(duration: Duration, filter: (T) -> Bool
 }
 
 
-class BackPressureFilterOperator<T>(private val filter: (T) -> Boolean) : FlowableOperator<T, T> {
+class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOperator<T, T> {
     private var backPressureSubscriber: BackPressureFilterSubscriber<T> = BackPressureFilterSubscriber(filter, null)
     override fun apply(subscriber: Subscriber<in T>): Subscriber<in T> {
         backPressureSubscriber.downstream = subscriber
@@ -36,7 +36,10 @@ class BackPressureFilterOperator<T>(private val filter: (T) -> Boolean) : Flowab
 
 
     class BackPressureFilterSubscriber<T>(private val filter: (T) -> Boolean, var downstream: Subscriber<in T>?) : FlowableSubscriber<T>, Subscription {
+        private var filterTimer: TimerTask? = null
+        private var enabled = false
         private var upstream: Subscription? = null
+
         override fun cancel() {
             upstream?.cancel()
         }
@@ -45,8 +48,6 @@ class BackPressureFilterOperator<T>(private val filter: (T) -> Boolean) : Flowab
             upstream?.request(n)
         }
 
-        private var filterTimer: TimerTask? = null
-        private var enabled = false
 
         fun handleBackPressure(duration: Duration): Action {
             return Action {
@@ -57,9 +58,8 @@ class BackPressureFilterOperator<T>(private val filter: (T) -> Boolean) : Flowab
             }
         }
 
-        private var done = false
         override fun onComplete() {
-            done = true
+            downstream?.onComplete()
         }
 
         override fun onSubscribe(s: Subscription) {
@@ -77,11 +77,10 @@ class BackPressureFilterOperator<T>(private val filter: (T) -> Boolean) : Flowab
             } else {
                 downstream?.onNext(t)
             }
-
         }
 
         override fun onError(t: Throwable?) {
-            done = true
+            downstream?.onError(t)
         }
     }
 }
