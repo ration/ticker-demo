@@ -9,6 +9,7 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.schedule
 
 /**
@@ -37,7 +38,7 @@ class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOperator<T
 
     class BackPressureFilterSubscriber<T>(private val filter: (T) -> Boolean, var downstream: Subscriber<in T>?) : FlowableSubscriber<T>, Subscription {
         private var filterTimer: TimerTask? = null
-        private var enabled = false
+        private var enabled = AtomicBoolean(false)
         private var upstream: Subscription? = null
 
         override fun cancel() {
@@ -49,14 +50,13 @@ class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOperator<T
         }
 
 
-        fun handleBackPressure(duration: Duration): Action {
-            return Action {
-                if (!enabled) {
-                    filterTimer = Timer("", false).schedule(duration.toMillis()) { enabled = false }
-                }
-                enabled = true
+        fun handleBackPressure(duration: Duration) = Action {
+            if (!enabled.get()) {
+                filterTimer = Timer("", false).schedule(duration.toMillis()) { enabled.set(true) }
             }
+            enabled.set(true)
         }
+
 
         override fun onComplete() {
             downstream?.onComplete()
@@ -72,7 +72,9 @@ class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOperator<T
         }
 
         override fun onNext(t: T) {
-            if (enabled && filter.invoke(t)) {
+            // If the filter does drop the element, we need to request for another from upstream to
+            // to make the request counts match
+            if (enabled.get() && filter.invoke(t)) {
                 upstream?.request(1)
             } else {
                 downstream?.onNext(t)
