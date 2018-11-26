@@ -59,8 +59,6 @@ dependencies {
 	compile 'io.rsocket.kotlin:rsocket-core:0.9-SNAPSHOT'
 	compile 'io.rsocket.kotlin:rsocket-transport-netty:0.9-SNAPSHOT'
 	compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.7'
-    compile "com.github.akarnokd:rxjava2-extensions:0.20.4"
-
 }
 
 def webappDir = "$projectDir/src/main/webapp"

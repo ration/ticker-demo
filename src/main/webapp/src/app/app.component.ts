@@ -12,7 +12,7 @@ import {ChangeContext, Options} from 'ng5-slider';
 })
 export class AppComponent {
   expanded = false;
-  private subscription: Subscription = null;
+  subscription: Subscription = null;
   news: News = {id: 3, text: 'this is some longer text', description: 'News item', breaking: false};
   speed = 100;
   options: Options = {
@@ -25,6 +25,9 @@ export class AppComponent {
   }
 
 
+  /**
+   * Pauses the websocket that it no longer requests more items
+   */
   public stop() {
     this.tickerService.pause();
     this.expanded = !this.expanded;

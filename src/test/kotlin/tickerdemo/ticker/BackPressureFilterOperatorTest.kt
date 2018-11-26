@@ -45,7 +45,7 @@ class BackPressureFilterOperatorTest {
 
     @Test
     fun fastIntervalWithBlockedReceiver() {
-        val ticker = fastTicker()
+        val ticker = fastDroppingTicker()
         val latch = CountDownLatch(1)
         ticker
             .onBackPressureFilter(Duration.ofSeconds(1)) {
@@ -64,7 +64,7 @@ class BackPressureFilterOperatorTest {
 
     }
 
-    private fun fastTicker(): Flowable<Long> {
+    private fun fastDroppingTicker(): Flowable<Long> {
         val interval = Flowable.interval(1, TimeUnit.MILLISECONDS)
         val ticker = BehaviorSubject.createDefault(0L)
         interval.subscribe {

@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 
 /**
- * Fake news generator. Generates news either with 0 priority or 1 priority.
+ * Fake news generator. Generates news fake news where 10% is breaking. Variable speed..
  */
 @Component
 class NewsGenerator : NewsProvider {

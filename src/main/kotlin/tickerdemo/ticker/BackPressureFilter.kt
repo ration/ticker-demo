@@ -13,9 +13,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.schedule
 
 /**
- * Extension function for flowables that on backpressure performs given filter.
+ * Extension function for Flowables that on Backpressure performs given filter for given amount of time.
+ * Does not reset the time if backpressure persists.
  *
- * Note that this is not is very reactive as it has state.
  */
 fun <T> Flowable<T>.onBackPressureFilter(duration: Duration, filter: (T) -> Boolean): Flowable<T> {
     val backPressureOperator = BackPressureFilterOperator(filter)
@@ -24,7 +24,10 @@ fun <T> Flowable<T>.onBackPressureFilter(duration: Duration, filter: (T) -> Bool
 }
 
 
-class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOperator<T, T> {
+/**
+ * Operator for BackPressure
+ */
+private class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOperator<T, T> {
     private var backPressureSubscriber: BackPressureFilterSubscriber<T> = BackPressureFilterSubscriber(filter, null)
     override fun apply(subscriber: Subscriber<in T>): Subscriber<in T> {
         backPressureSubscriber.downstream = subscriber
@@ -37,7 +40,6 @@ class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOperator<T
 
 
     class BackPressureFilterSubscriber<T>(private val filter: (T) -> Boolean, var downstream: Subscriber<in T>?) : FlowableSubscriber<T>, Subscription {
-        private var filterTimer: TimerTask? = null
         private var enabled = AtomicBoolean(false)
         private var upstream: Subscription? = null
 
@@ -52,7 +54,7 @@ class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOperator<T
 
         fun handleBackPressure(duration: Duration) = Action {
             if (!enabled.get()) {
-                filterTimer = Timer("", false).schedule(duration.toMillis()) { enabled.set(true) }
+                Timer("", false).schedule(duration.toMillis()) { enabled.set(false) }
             }
             enabled.set(true)
         }
