@@ -5,6 +5,7 @@ import io.reactivex.Flowable
 import io.reactivex.FlowableOperator
 import io.reactivex.FlowableSubscriber
 import io.reactivex.functions.Action
+import io.reactivex.plugins.RxJavaPlugins
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import java.time.Duration
@@ -20,7 +21,9 @@ import kotlin.concurrent.schedule
 fun <T> Flowable<T>.onBackPressureFilter(duration: Duration, filter: (T) -> Boolean): Flowable<T> {
     val backPressureOperator = BackPressureFilterOperator(filter)
     return this.lift(backPressureOperator)
-        .onBackpressureBuffer(100L, backPressureOperator.handleBackPressure(duration), BackpressureOverflowStrategy.DROP_OLDEST)
+        .onBackpressureBuffer(100L,
+                backPressureOperator.handleBackPressure(duration),
+                BackpressureOverflowStrategy.DROP_OLDEST)
 }
 
 
@@ -42,6 +45,8 @@ private class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOp
     class BackPressureFilterSubscriber<T>(private val filter: (T) -> Boolean, var downstream: Subscriber<in T>?) : FlowableSubscriber<T>, Subscription {
         private var enabled = AtomicBoolean(false)
         private var upstream: Subscription? = null
+        private var done: Boolean = false
+
 
         override fun cancel() {
             upstream?.cancel()
@@ -51,7 +56,6 @@ private class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOp
             upstream?.request(n)
         }
 
-
         fun handleBackPressure(duration: Duration) = Action {
             if (!enabled.get()) {
                 Timer("", false).schedule(duration.toMillis()) { enabled.set(false) }
@@ -59,8 +63,11 @@ private class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOp
             enabled.set(true)
         }
 
-
         override fun onComplete() {
+            if (done) {
+                return
+            }
+            done = true
             downstream?.onComplete()
         }
 
@@ -74,6 +81,10 @@ private class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOp
         }
 
         override fun onNext(t: T) {
+            // No need to send anything if we're done
+            if (done) {
+                return
+            }
             // If the filter does drop the element, we need to request for another from upstream to
             // to make the request counts match
             if (enabled.get() && filter.invoke(t)) {
@@ -83,7 +94,12 @@ private class BackPressureFilterOperator<T>(filter: (T) -> Boolean) : FlowableOp
             }
         }
 
-        override fun onError(t: Throwable?) {
+        override fun onError(t: Throwable) {
+            if (done) {
+                RxJavaPlugins.onError(t)
+                return
+            }
+            done = true
             downstream?.onError(t)
         }
     }
